@@ -17,6 +17,7 @@ public:
 private:
 	void openMetaDataEd();
 	void jumpToLetter();
+	void deleteGameWithFile();
 	
 	MenuComponent mMenu;
 

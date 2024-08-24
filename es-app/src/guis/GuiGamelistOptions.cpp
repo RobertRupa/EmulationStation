@@ -52,6 +52,13 @@ GuiGamelistOptions::GuiGamelistOptions(Window* window, SystemData* system) : Gui
 	row.makeAcceptInputHandler(std::bind(&GuiGamelistOptions::openMetaDataEd, this));
 	mMenu.addRow(row);
 
+    // delete game with file
+    row.elements.clear();
+    row.addElement(std::make_shared<TextComponent>(mWindow, "DELETE GAME WITH FILE", Font::get(FONT_SIZE_MEDIUM), 0x777777FF), true);
+    row.addElement(makeArrow(mWindow), false);
+    row.makeAcceptInputHandler(std::bind(&GuiGamelistOptions::deleteGameWithFile, this));
+    mMenu.addRow(row);
+
 	// center the menu
 	setSize((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight());
 	mMenu.setPosition((mSize.x() - mMenu.getSize().x()) / 2, (mSize.y() - mMenu.getSize().y()) / 2);
@@ -116,6 +123,27 @@ void GuiGamelistOptions::jumpToLetter()
 	gamelist->setCursor(files.at(mid));
 
 	delete this;
+}
+
+void GuiGamelistOptions::deleteGameWithFile()
+{
+	FileData* file = getGamelist()->getCursor();
+	std::string gameName = file->getName();
+
+	mWindow->pushGui(new GuiMsgBox(
+		mWindow,
+		gameName + " will be permanently removed. Continue?",
+		"Yes", [this, file] {
+			boost::filesystem::remove(file->getPath());
+			file->getParent()->removeChild(file);
+			getGamelist()->onFileChanged(file, FILE_REMOVED);
+			delete file;
+			delete this;
+		},
+		"No", [this] {
+			return;
+		}
+	));
 }
 
 bool GuiGamelistOptions::input(InputConfig* config, Input input)
